@@ -6,7 +6,7 @@ This project demonstrates the use of different types of SQL joins — `INNER JOI
 
 ## 🧠 Objective
 
-Master SQL joins by writing and testing queries across related tables in a normalized relational database.
+Master SQL joins and subqueries by writing and testing queries across related tables in a normalized relational database.
 
 ---
 
@@ -84,8 +84,61 @@ RIGHT JOIN bookings ON users.user_id = bookings.user_id;
 
 ---
 
+## 🔎 Subquery Examples
+
+### 4. 📈 Subquery: Properties with Average Rating > 4.0
+
+```sql
+-- This is a SQL script that demonstrates the use of subqueries to filter properties based on average ratings from reviews.
+SELECT
+    *
+FROM
+    properties
+WHERE
+    property_id IN (
+        SELECT
+            property_id
+        FROM
+            reviews
+        GROUP BY
+            property_id
+        HAVING
+            AVG(rating) > 4.0
+    );
+```
+
+📌 **Purpose:**  
+Selects all properties whose average review rating is greater than 4.0. This uses a non-correlated subquery.
+
+---
+
+### 5. 🧑‍💼 Subquery with JOIN: Users Who Booked More Than Once
+
+```sql
+SELECT
+    *
+FROM
+    users
+    RIGHT JOIN (
+        SELECT
+            user_id,
+            COUNT(*) AS booking_times
+        FROM
+            bookings
+        GROUP BY
+            user_id
+        HAVING
+            COUNT(*) > 1
+    ) AS tb ON users.user_id = tb.user_id;
+```
+
+📌 **Purpose:**  
+This query finds users who have made more than one booking by aggregating bookings and then joining the result with the users table to retrieve user information.
+
+---
+
 ## ✅ Requirements
 
 - SQL-compliant database (e.g. PostgreSQL, MySQL, MariaDB)
 - A schema with the appropriate foreign key relationships defined
-- Basic understanding of JOIN operations
+- Basic understanding of JOIN operations and subqueries
