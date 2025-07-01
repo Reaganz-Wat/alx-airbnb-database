@@ -28,5 +28,5 @@ FROM
         GROUP BY
             user_id
         HAVING
-            count(*) > 1
+            count(*) > 3
     ) AS tb ON users.user_id = tb.user_id;
