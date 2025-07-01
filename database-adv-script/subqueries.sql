@@ -22,11 +22,11 @@ FROM
     RIGHT JOIN (
         SELECT
             user_id,
-            count(*) AS booking_times
+            COUNT(*) AS booking_times
         FROM
             bookings
         GROUP BY
             user_id
         HAVING
-            count(*) > 3
+            COUNT(*) > 3
     ) AS tb ON users.user_id = tb.user_id;
