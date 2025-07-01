@@ -1,22 +1,15 @@
+-- 1. INNER JOIN: Get bookings and the users who made them
+SELECT * 
+FROM users AS u 
+INNER JOIN bookings AS b ON u.user_id = b.user_id;
 
--- Ths SQL Querry uses inner join
-SELECT * FROM users AS u INNER JOIN bookings AS b ON u.user_id = b.user_id;
+-- 2. LEFT JOIN: Get all properties and their reviews (even if no review)
+SELECT * 
+FROM properties 
+LEFT JOIN reviews ON properties.property_id = reviews.property_id 
+ORDER BY properties.property_id;
 
--- More detaid one here
-SELECT 
-b.booking_id, 
-b.property_id, 
-u.first_name, 
-u.last_name, 
-b.start_date, 
-b.end_date, 
-b.total_price, 
-b.status, 
-b.created_at 
-FROM bookings b INNER JOIN users u ON b.user_id = u.user_id;
-
-
--- This is used for left join
-SELECT * FROM properties LEFT JOIN reviews ON properties.host_id = reviews.user_id;
-
-SELECT users.first_name, users.email, bookings.total_price, bookings.status FROM users LEFT JOIN bookings ON users.user_id = bookings.user_id UNION SELECT users.first_name, users.email, bookings.total_price, bookings.status FROM users RIGHT JOIN bookings ON users.user_id = bookings.user_id;
+-- 3. FULL OUTER JOIN: Get all users and bookings (even if not linked)
+SELECT * 
+FROM users 
+FULL OUTER JOIN bookings ON users.user_id = bookings.user_id;

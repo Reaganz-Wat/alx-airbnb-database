@@ -1,110 +1,91 @@
-```markdown
-# SQL Joins Queries
+# 📘 SQL Joins Practice: Bookings System
 
-## 📁 Directory: `database-adv-script`
-## 📄 File: `joins_queries.sql`
-
-This project demonstrates mastery of SQL joins by writing complex queries using **INNER JOIN**, **LEFT JOIN**, and a simulated **FULL OUTER JOIN** in MariaDB (which does not support it natively).
+This project demonstrates the use of different types of SQL joins — `INNER JOIN`, `LEFT JOIN`, and `FULL OUTER JOIN` — using a hypothetical booking system. The goal is to write and understand complex SQL queries that accurately reflect real-world relationships between users, properties, bookings, and reviews.
 
 ---
 
-## 📘 Queries Explained
+## 🧠 Objective
 
-### 1. 🔗 INNER JOIN: Retrieve all bookings and the respective users who made those bookings
+Master SQL joins by writing and testing queries across related tables in a normalized relational database.
+
+---
+
+## 📁 Tables Used
+
+This project uses the following tables from the database schema:
+
+- `users`
+- `properties`
+- `bookings`
+- `reviews`
+
+---
+
+## 🧪 SQL Join Queries
+
+### 1. 🔗 INNER JOIN: Bookings and Users
 
 ```sql
--- Simple version
+-- 1. INNER JOIN: Get bookings and the users who made them
 SELECT * 
 FROM users AS u 
-INNER JOIN bookings AS b 
-ON u.user_id = b.user_id;
-
--- Detailed version
-SELECT 
-    b.booking_id, 
-    b.property_id, 
-    u.first_name, 
-    u.last_name, 
-    b.start_date, 
-    b.end_date, 
-    b.total_price, 
-    b.status, 
-    b.created_at 
-FROM 
-    bookings b 
-INNER JOIN 
-    users u 
-ON 
-    b.user_id = u.user_id;
+INNER JOIN bookings AS b ON u.user_id = b.user_id;
 ```
 
-This query joins the `bookings` and `users` tables to display booking details along with the user information. Only bookings with an associated user are included.
+📌 **Purpose:**  
+Retrieves all bookings that are linked to a user. Only users who have made at least one booking will appear in the result.
 
 ---
 
-### 2. 🡸 LEFT JOIN: Retrieve all properties and their reviews, including those with no reviews
+### 2. 🧩 LEFT JOIN: Properties and Their Reviews
 
 ```sql
-SELECT 
-    p.property_id, 
-    p.name, 
-    r.review_id, 
-    r.comment 
-FROM 
-    properties p 
-LEFT JOIN 
-    reviews r 
-ON 
-    p.property_id = r.property_id;
+-- 2. LEFT JOIN: Get all properties and their reviews (even if no review)
+SELECT * 
+FROM properties 
+LEFT JOIN reviews ON properties.property_id = reviews.property_id 
+ORDER BY properties.property_id;
 ```
 
-This query ensures all properties are shown, even if they have no review. Review fields will appear as `NULL` if a property has not been reviewed.
+📌 **Purpose:**  
+Retrieves all properties, including those that have no reviews. If a property has no review, the review-related fields will be `NULL`.
 
 ---
 
-### 3. 🔁 Simulated FULL OUTER JOIN: Retrieve all users and all bookings, including unmatched ones
-
-MariaDB does **not support `FULL OUTER JOIN`**, so we simulate it using `UNION` of `LEFT JOIN` and `RIGHT JOIN`.
+### 3. 🌐 FULL OUTER JOIN: Users and Bookings
 
 ```sql
-SELECT 
-    u.first_name, 
-    u.email, 
-    b.total_price, 
-    b.status 
-FROM 
-    users u 
-LEFT JOIN 
-    bookings b 
-ON 
-    u.user_id = b.user_id
+-- 3. FULL OUTER JOIN: Get all users and bookings (even if not linked)
+SELECT * 
+FROM users 
+FULL OUTER JOIN bookings ON users.user_id = bookings.user_id;
+```
+
+📌 **Purpose:**  
+Retrieves all users and all bookings — including:
+- Users who haven’t made any bookings
+- Bookings not linked to any user (if such cases exist)
+
+📌 **Note:**  
+If you're using MySQL or MariaDB, you must emulate `FULL OUTER JOIN` as it's not supported natively:
+
+```sql
+-- Simulated FULL OUTER JOIN in MySQL/MariaDB
+SELECT * 
+FROM users 
+LEFT JOIN bookings ON users.user_id = bookings.user_id
 
 UNION
 
-SELECT 
-    u.first_name, 
-    u.email, 
-    b.total_price, 
-    b.status 
-FROM 
-    users u 
-RIGHT JOIN 
-    bookings b 
-ON 
-    u.user_id = b.user_id;
+SELECT * 
+FROM users 
+RIGHT JOIN bookings ON users.user_id = bookings.user_id;
 ```
-
-This query returns:
-- All users (with or without bookings)
-- All bookings (with or without user info)
-
-It ensures full coverage of both tables, even when relationships are missing.
 
 ---
 
-## 💡 Notes
+## ✅ Requirements
 
-- Aliases (`u`, `b`, `p`, `r`) are used to improve readability.
-- `UNION` is used instead of `UNION ALL` to avoid duplicate rows in the full outer join simulation.
-- Ensure your tables (`users`, `bookings`, `properties`, `reviews`) are properly populated for meaningful results.
-- **MariaDB and MySQL do not support FULL OUTER JOIN directly**, so we simulate it using a combination of `LEFT JOIN` and `RIGHT JOIN` with `UNION`.
+- SQL-compliant database (e.g. PostgreSQL, MySQL, MariaDB)
+- A schema with the appropriate foreign key relationships defined
+- Basic understanding of JOIN operations
