@@ -105,6 +105,120 @@ CREATE INDEX idx_bookings_property_count_covering ON bookings(property_id, booki
 -- CREATE SPATIAL INDEX idx_properties_coordinates ON properties(coordinates);
 
 -- =====================================================
+-- PERFORMANCE MEASUREMENT QUERIES
+-- =====================================================
+-- Note: MySQL uses EXPLAIN instead of EXPLAIN ANALYZE
+-- These queries demonstrate performance before and after indexing
+
+-- Query 1: Users with booking count (Before and After Index)
+-- Before indexing (run this first, then create indexes, then run again)
+EXPLAIN ANALYZE SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.email,
+    u.phone_number,
+    u.role,
+    u.created_at,
+    b.book_count
+FROM
+    users AS u
+INNER JOIN (
+    SELECT
+        user_id,
+        COUNT(*) AS book_count
+    FROM
+        bookings
+    GROUP BY
+        user_id
+) AS b ON u.user_id = b.user_id;
+
+-- Query 2: Properties with booking rankings
+EXPLAIN ANALYZE SELECT
+    *
+FROM
+    properties AS p
+INNER JOIN (
+    SELECT
+        property_id,
+        booking_count,
+        RANK() OVER (
+            ORDER BY
+                booking_count DESC
+        ) AS booking_rank
+    FROM
+        (
+            SELECT
+                property_id,
+                COUNT(*) AS booking_count
+            FROM
+                bookings
+            GROUP BY
+                property_id
+        ) AS booking_summary
+) AS r ON p.property_id = r.property_id;
+
+-- Query 3: ROW_NUMBER ranking
+EXPLAIN ANALYZE SELECT
+    property_id,
+    booking_count,
+    ROW_NUMBER() OVER (
+        ORDER BY booking_count DESC
+    ) AS booking_position
+FROM (
+    SELECT
+        property_id,
+        COUNT(*) AS booking_count
+    FROM bookings
+    GROUP BY property_id
+) AS booking_summary;
+
+-- Query 4: Simple JOIN between users and bookings
+EXPLAIN ANALYZE SELECT * 
+FROM users AS u 
+INNER JOIN bookings AS b ON u.user_id = b.user_id;
+
+-- Query 5: Properties with reviews (LEFT JOIN)
+EXPLAIN ANALYZE SELECT * 
+FROM properties 
+LEFT JOIN reviews ON properties.property_id = reviews.property_id 
+ORDER BY properties.property_id;
+
+-- Query 6: Properties with high-rated reviews
+EXPLAIN ANALYZE SELECT
+    *
+FROM
+    properties
+WHERE
+    property_id IN (
+        SELECT
+            property_id
+        FROM
+            reviews
+        GROUP BY
+            property_id
+        HAVING
+            AVG(rating) > 4.0
+    );
+
+-- Query 7: RIGHT JOIN with booking counts
+EXPLAIN ANALYZE SELECT
+    *
+FROM
+    users
+RIGHT JOIN (
+    SELECT
+        user_id,
+        COUNT(*) AS booking_times
+    FROM
+        bookings
+    GROUP BY
+        user_id
+    HAVING
+        COUNT(*) > 3
+) AS tb ON users.user_id = tb.user_id;
+
+-- =====================================================
 -- NOTES FOR MAINTENANCE
 -- =====================================================
 /*
@@ -120,8 +234,19 @@ CREATE INDEX idx_bookings_property_count_covering ON bookings(property_id, booki
 4. Analyze table statistics after creating indexes:
    ANALYZE TABLE table_name;
 
-5. Consider the trade-offs:
+5. Performance measurement:
+   - Run EXPLAIN ANALYZE queries before creating indexes
+   - Create the indexes above
+   - Run EXPLAIN ANALYZE queries again to compare
+   - Document the differences in execution time and query plans
+
+6. Consider the trade-offs:
    - Indexes speed up SELECT queries but slow down INSERT/UPDATE/DELETE
    - Each index requires additional storage space
    - Too many indexes can hurt overall performance
+
+7. MySQL vs PostgreSQL:
+   - This file uses EXPLAIN ANALYZE for compatibility
+   - In MySQL, you can use EXPLAIN or EXPLAIN FORMAT=JSON for detailed analysis
+   - EXPLAIN ANALYZE provides actual execution times and row counts
 */
