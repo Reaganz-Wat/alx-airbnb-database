@@ -195,6 +195,24 @@ FROM
     ) AS r ON p.property_id = r.property_id;
 ```
 
+### 8. 🧮 Window Function: Using ROW_NUMBER to Rank Properties
+
+```sql
+SELECT
+    property_id,
+    booking_count,
+    ROW_NUMBER() OVER (
+        ORDER BY booking_count DESC
+    ) AS booking_position
+FROM (
+    SELECT
+        property_id,
+        COUNT(*) AS booking_count
+    FROM bookings
+    GROUP BY property_id
+) AS booking_summary;
+```
+
 📌 **Purpose:**  
 Ranks properties based on how many bookings they have received using the `RANK()` window function. Tied properties will receive the same rank, and ranks will skip accordingly.
 

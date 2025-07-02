@@ -19,6 +19,7 @@ FROM
             user_id
     ) AS b ON u.user_id = b.user_id;
 
+
 SELECT
     *
 FROM
@@ -42,3 +43,19 @@ FROM
                     property_id
             ) AS booking_summary
     ) AS r ON p.property_id = r.property_id;
+
+
+-- Use ROW_NUMBER to rank properties based on booking count
+SELECT
+    property_id,
+    booking_count,
+    ROW_NUMBER() OVER (
+        ORDER BY booking_count DESC
+    ) AS booking_position
+FROM (
+    SELECT
+        property_id,
+        COUNT(*) AS booking_count
+    FROM bookings
+    GROUP BY property_id
+) AS booking_summary;
