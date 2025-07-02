@@ -137,6 +137,68 @@ This query finds users who have made more than one booking by aggregating bookin
 
 ---
 
+### 6. 📊 INNER JOIN with Aggregation: Users and Booking Counts
+
+```sql
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.email,
+    u.phone_number,
+    u.role,
+    u.created_at,
+    b.book_count
+FROM
+    users AS u
+    INNER JOIN (
+        SELECT
+            user_id,
+            COUNT(*) AS book_count
+        FROM
+            bookings
+        GROUP BY
+            user_id
+    ) AS b ON u.user_id = b.user_id;
+```
+
+📌 **Purpose:**  
+Retrieves user details along with the total number of bookings each user has made. Only users with at least one booking are included.
+
+---
+
+### 7. 🏠 Window Function: Ranking Properties by Booking Volume
+
+```sql
+SELECT
+    *
+FROM
+    properties AS p
+    INNER JOIN (
+        SELECT
+            property_id,
+            booking_count,
+            RANK() OVER (
+                ORDER BY
+                    booking_count DESC
+            ) AS booking_rank
+        FROM
+            (
+                SELECT
+                    property_id,
+                    COUNT(*) AS booking_count
+                FROM
+                    bookings
+                GROUP BY
+                    property_id
+            ) AS booking_summary
+    ) AS r ON p.property_id = r.property_id;
+```
+
+📌 **Purpose:**  
+Ranks properties based on how many bookings they have received using the `RANK()` window function. Tied properties will receive the same rank, and ranks will skip accordingly.
+
+
 ## ✅ Requirements
 
 - SQL-compliant database (e.g. PostgreSQL, MySQL, MariaDB)
