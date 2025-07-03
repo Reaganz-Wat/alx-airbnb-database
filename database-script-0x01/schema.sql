@@ -1,14 +1,24 @@
 -- schema.sql
 
+-- Create ENUM for User role
+CREATE TYPE user_role AS ENUM ('guest', 'host', 'admin');
+
+-- Create ENUM for Booking status
+CREATE TYPE booking_status AS ENUM ('pending', 'confirmed', 'canceled');
+
+-- Create ENUM for Payment method
+CREATE TYPE payment_method AS ENUM ('credit_card', 'paypal', 'stripe');
+
+
 -- USER TABLE
-CREATE TABLE User (
+CREATE TABLE "User" (
     user_id UUID PRIMARY KEY,
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
     email VARCHAR UNIQUE NOT NULL,
     password_hash VARCHAR NOT NULL,
     phone_number VARCHAR,
-    role ENUM('guest', 'host', 'admin') NOT NULL,
+    role user_role NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -21,8 +31,8 @@ CREATE TABLE Property (
     location VARCHAR NOT NULL,
     pricepernight DECIMAL NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (host_id) REFERENCES User(user_id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (host_id) REFERENCES "User"(user_id)
 );
 
 -- BOOKING TABLE
@@ -33,10 +43,10 @@ CREATE TABLE Booking (
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     total_price DECIMAL NOT NULL,
-    status ENUM('pending', 'confirmed', 'canceled') NOT NULL,
+    status booking_status NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (property_id) REFERENCES Property(property_id),
-    FOREIGN KEY (user_id) REFERENCES User(user_id)
+    FOREIGN KEY (user_id) REFERENCES "User"(user_id)
 );
 
 -- PAYMENT TABLE
@@ -45,7 +55,7 @@ CREATE TABLE Payment (
     booking_id UUID NOT NULL,
     amount DECIMAL NOT NULL,
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_method ENUM('credit_card', 'paypal', 'stripe') NOT NULL,
+    payment_method payment_method NOT NULL,
     FOREIGN KEY (booking_id) REFERENCES Booking(booking_id)
 );
 
@@ -58,7 +68,7 @@ CREATE TABLE Review (
     comment TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (property_id) REFERENCES Property(property_id),
-    FOREIGN KEY (user_id) REFERENCES User(user_id)
+    FOREIGN KEY (user_id) REFERENCES "User"(user_id)
 );
 
 -- MESSAGE TABLE
@@ -68,13 +78,14 @@ CREATE TABLE Message (
     recipient_id UUID NOT NULL,
     message_body TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id) REFERENCES User(user_id),
-    FOREIGN KEY (recipient_id) REFERENCES User(user_id)
+    FOREIGN KEY (sender_id) REFERENCES "User"(user_id),
+    FOREIGN KEY (recipient_id) REFERENCES "User"(user_id)
 );
 
+
 -- INDEXES
-CREATE INDEX idx_user_email ON User(email);
-CREATE INDEX idx_property_host ON Property(host_id);
-CREATE INDEX idx_booking_property ON Booking(property_id);
-CREATE INDEX idx_booking_user ON Booking(user_id);
-CREATE INDEX idx_payment_booking ON Payment(booking_id);
+CREATE INDEX idx_user_email ON "User"(email);
+CREATE INDEX idx_property_host ON "Property"(host_id);
+CREATE INDEX idx_booking_property ON "Booking"(property_id);
+CREATE INDEX idx_booking_user ON "Booking"(user_id);
+CREATE INDEX idx_payment_booking ON "Payment"(booking_id);
